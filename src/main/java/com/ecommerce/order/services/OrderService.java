@@ -1,13 +1,8 @@
 package com.ecommerce.order.services;
 
-import com.app.ecom.model.*;
-import com.app.ecom.repository.UserRepository;
 import com.ecommerce.order.dto.OrderItemDTO;
 import com.ecommerce.order.dto.OrderResponse;
-import com.ecommerce.order.models.CartItem;
-import com.ecommerce.order.models.Order;
-import com.ecommerce.order.models.OrderItem;
-import com.ecommerce.order.models.OrderStatus;
+import com.ecommerce.order.models.*;
 import com.ecommerce.order.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,12 +18,6 @@ public class OrderService {
     private CartService cartService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private OrderRepository orderRepository;
 
     public Optional<OrderResponse> createOrder(String userId) {
@@ -39,12 +28,12 @@ public class OrderService {
             return Optional.empty();
         }
         // Validate for user
-        Optional<User> userOptional = userRepository.findById(Long.valueOf(userId));
-        if(userOptional.isEmpty()){
-            return Optional.empty();
-        }
-
-        User user = userOptional.get();
+//        Optional<User> userOptional = userRepository.findById(Long.valueOf(userId));
+//        if(userOptional.isEmpty()){
+//            return Optional.empty();
+//        }
+//
+//        User user = userOptional.get();
 
         // Calculate total price
         BigDecimal totalPrice = cartItems.stream()
@@ -53,14 +42,14 @@ public class OrderService {
 
         // Create order
         Order order = new Order();
-        order.setUser(user);
+        order.setUserId(userId);
         order.setStatus(OrderStatus.CONFIRMED);
         order.setTotalAmount(totalPrice);
 
         List<OrderItem> orderItems = cartItems.stream()
                 .map(item -> new OrderItem(
                         null,
-                        item.getProduct(),
+                        item.getProductId(),
                         item.getQuantity(),
                         item.getPrice(),
                         order
@@ -84,7 +73,7 @@ public class OrderService {
                 order.getItems().stream()
                         .map(orderItem -> new OrderItemDTO(
                         orderItem.getId(),
-                        orderItem.getProduct().getId(),
+                        orderItem.getProductId(),
                         orderItem.getQuantity(),
                         orderItem.getPrice(),
                         orderItem.getPrice().multiply(new BigDecimal(orderItem.getQuantity()))
